@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Pixel Party Upgraded</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:#140b2d;color:#fff;font-family:Arial,sans-serif}
+body{touch-action:manipulation}
+button{font:inherit}
+.page{display:none;min-height:100vh;padding:20px}
+.page.active{display:block}
+h1{font-size:52px;margin:18px 0 8px;color:#ffd84d;text-shadow:4px 4px #7a2ea8}
+.sub{color:#d9cffa;margin-bottom:24px}
+.cards{max-width:860px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{border:0;border-radius:18px;background:#39206d;color:white;padding:20px;min-height:200px;box-shadow:0 7px #0b0418;cursor:pointer}
+.card:active{transform:translateY(5px);box-shadow:0 2px #0b0418}
+.icon{font-size:62px}
+.card h2{margin:8px 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:900px;margin:auto}
+.back,.mainbtn{border:0;border-radius:10px;padding:12px 16px;background:#ffd84d;color:#2b1800;font-weight:bold;box-shadow:0 4px #8b6600}
+.game{position:relative;max-width:900px;height:540px;margin:18px auto;background:#24134c;border:5px solid #7653c8;border-radius:18px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.score{font-weight:bold;background:#2c1956;padding:9px 13px;border-radius:14px;border:4px solid #ffd84d;box-shadow:0 0 0 3px #6c4ab5,0 5px 0 #0b0418}
+.overlay{position:absolute;inset:0;background:rgba(10,3,26,.72);display:flex;align-items:center;justify-content:center;z-index:30}
+.box{background:#3a2470;border:4px solid #7653c8;border-radius:18px;padding:25px;width:min(90%,430px)}
+.status{max-width:900px;margin:8px auto;color:#d8cdf7;font-size:14px}
+
+/* Slice Master */
+#sliceGame{background:linear-gradient(#8edcff 0 58%,#d7a362 58%)}
+.slice-platform{position:absolute;left:0;right:0;bottom:0;height:80px;background:#76502f;border-top:8px solid #b67a42}
+.knife{position:absolute;left:75px;bottom:95px;font-size:78px;transform:rotate(-18deg);transform-origin:center;transition:transform .09s linear}
+.block{position:absolute;bottom:80px;width:68px;height:105px;border-radius:12px 12px 4px 4px;background:#67dd63;border:5px solid #2f7e34}
+.block:before{content:"";position:absolute;left:12px;right:12px;top:22px;height:7px;background:#3aaf44;box-shadow:0 26px 0 #3aaf44,0 52px 0 #3aaf44}
+.speed-note{position:absolute;left:14px;top:14px;background:rgba(0,0,0,.25);padding:7px 10px;border-radius:9px;font-size:13px}
+
+/* Fruit Slice */
+#fruitGame{
+  background:
+    radial-gradient(circle at 50% 115%, #53371f 0 29%, transparent 30%),
+    linear-gradient(#30134f,#12071e);
+  cursor:crosshair;
+}
+.fruit{position:absolute;width:74px;height:74px;display:flex;align-items:center;justify-content:center;font-size:60px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.28));transform-origin:center;pointer-events:none}
+.bomb{position:absolute;width:68px;height:68px;border-radius:50%;background:#2f3038;border:5px solid #121214;box-shadow:inset -10px -10px 0 #18181c,0 8px 12px rgba(0,0,0,.3)}
+.bomb:before{content:"";position:absolute;left:47px;top:-15px;width:9px;height:27px;background:#9b6a3e;transform:rotate(35deg);border-radius:5px}
+.bomb:after{content:"✦";position:absolute;right:-2px;top:-31px;color:#ffdf67;font-size:26px}
+.slash{position:absolute;height:8px;background:white;border-radius:5px;box-shadow:0 0 15px #fff;transform-origin:left center;pointer-events:none;z-index:20}
+.half{position:absolute;width:33px;height:68px;border-radius:34px 0 0 34px;pointer-events:none;border:4px solid rgba(0,0,0,.18);z-index:10}
+.half.right{border-radius:0 34px 34px 0}
+.fruit-piece{position:absolute;font-size:48px;pointer-events:none;z-index:12;transform-origin:center}
+.point-pop{position:absolute;font-size:28px;font-weight:900;color:#fff06a;text-shadow:2px 2px 0 #7b4c00;pointer-events:none;z-index:25;animation:pointPop .7s ease-out forwards}
+.juice-dot{position:absolute;width:10px;height:10px;border-radius:50%;pointer-events:none;z-index:11;animation:juiceFly .45s ease-out forwards}
+@keyframes pointPop{0%{opacity:1;transform:translateY(0) scale(.8)}70%{opacity:1;transform:translateY(-35px) scale(1.15)}100%{opacity:0;transform:translateY(-55px) scale(1.1)}}
+@keyframes juiceFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--jx),var(--jy)) scale(.4)}}
+
+/* Low's Adventure */
+#lowGame{background:linear-gradient(#7fd8ff 0 63%,#b7ee7a 63% 78%,#7a4f30 78%)}
+.cloud{position:absolute;width:95px;height:35px;background:#fff;border-radius:30px;opacity:.8}
+.cloud:before,.cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud:before{width:42px;height:42px;left:15px;top:-18px}
+.cloud:after{width:34px;height:34px;right:13px;top:-12px}
+.ground{position:absolute;left:0;right:0;bottom:0;height:92px;background:#6f472c;border-top:12px solid #63bf57}
+.player{position:absolute;left:80px;bottom:92px;width:48px;height:60px;background:#ffd56e;border:4px solid #75492b;border-radius:8px;z-index:6}
+.player:before{content:"";position:absolute;left:-3px;top:-22px;width:46px;height:23px;background:#ff6a79;border:4px solid #75492b;border-bottom:0;border-radius:17px 17px 0 0}
+.eye{position:absolute;top:16px;width:5px;height:5px;background:#222;border-radius:50%}.e1{left:11px}.e2{right:11px}
+.enemy{position:absolute;bottom:92px;width:46px;height:48px;background:#a94848;border:4px solid #5b2424;border-radius:8px}
+.enemy:before,.enemy:after{content:"";position:absolute;top:-14px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:16px solid #5b2424}
+.enemy:before{left:2px}.enemy:after{right:2px}
+.crate{position:absolute;bottom:92px;width:52px;height:52px;background:#9d6939;border:5px solid #5d391d}
+.crate:before{content:"";position:absolute;inset:8px;border:4px solid #c18a51;transform:rotate(45deg)}
+.spike{position:absolute;bottom:92px;width:48px;height:42px}
+.spike:before{content:"";position:absolute;bottom:0;left:0;border-left:24px solid transparent;border-right:24px solid transparent;border-bottom:42px solid #5d6674}
+.coin{position:absolute;width:28px;height:36px;border-radius:50%;background:#ffe564;border:4px solid #b78311;z-index:5}
+.power{position:absolute;width:34px;height:34px;border-radius:10px;background:#5cecff;border:4px solid #19788a;z-index:5}
+.power:after{content:"★";position:absolute;left:5px;top:0;color:#fff;font-size:20px}
+.jump{margin-top:10px;width:92px;height:58px;font-size:28px;border:0;border-radius:12px;background:#7653c8;color:white;font-weight:bold}
+.low-controls{display:flex;justify-content:center;gap:12px}
+.badge{position:absolute;right:14px;top:14px;background:rgba(0,0,0,.28);padding:7px 10px;border-radius:9px;font-size:13px}
+@media(max-width:700px){.cards{grid-template-columns:1fr}.game{height:60vh;min-height:420px}h1{font-size:42px}}
+</style>
+</head>
+<body>
+
+<div id="home" class="page active">
+  <h1>PIXEL PARTY</h1>
+  <div class="sub">Upgraded games: slower slicing, real swipes, and a more exciting adventure.</div>
+  <div class="cards">
+    <button class="card" data-open="slice"><div class="icon">🔪</div><h2>Slice Master</h2><p>Slower blocks and easier timing.</p></button>
+    <button class="card" data-open="fruit"><div class="icon">🍉</div><h2>Fruit Slice</h2><p>Swipe through fruit with a real slash effect.</p></button>
+    <button class="card" data-open="low"><div class="icon">🏃</div><h2>Low's Adventure+</h2><p>Coins, enemies, crates, spikes, power-ups, and speed boosts.</p></button>
+  </div>
+</div>
+
+<div id="slice" class="page">
+  <div class="top"><button class="back" data-back>← Menu</button><h2>Slice Master</h2><div class="score">Score: <span id="sliceScore">0</span></div></div>
+  <div id="sliceGame" class="game">
+    <div class="slice-platform"></div>
+    <div class="speed-note">Speed: slower and easier</div>
+    <div id="knife" class="knife">🔪</div>
+    <div id="sliceOverlay" class="overlay"><div class="box"><h2>Slice Master</h2><p>Tap the game area to swing. Blocks now move much slower.</p><button id="sliceStart" class="mainbtn">Start</button></div></div>
+  </div>
+</div>
+
+<div id="fruit" class="page">
+  <div class="top"><button class="back" data-back>← Menu</button><h2>Fruit Slice</h2><div class="score">🏆 Score: <span id="fruitScore">0</span></div></div>
+  <div id="fruitGame" class="game">
+    <div id="fruitOverlay" class="overlay"><div class="box"><h2>Fruit Slice</h2><p>Fruit now pops up from random places across the bottom. Swipe through it while it flies. 🍓 = 5, 🍎 = 10, 🍊 = 20, 🍍 = 30, 🍉 = 40. Avoid bombs.</p><button id="fruitStart" class="mainbtn">Start</button></div></div>
+  </div>
+</div>
+
+<div id="low" class="page">
+  <div class="top"><button class="back" data-back>← Menu</button><h2>Low's Adventure+</h2><div class="score">Score: <span id="lowScore">0</span> · Coins: <span id="lowCoins">0</span></div></div>
+  <div id="lowGame" class="game">
+    <div class="cloud" style="left:7%;top:14%"></div>
+    <div class="cloud" style="left:60%;top:22%;transform:scale(.8)"></div>
+    <div class="ground"></div>
+    <div id="lowPlayer" class="player"><span class="eye e1"></span><span class="eye e2"></span></div>
+    <div id="powerBadge" class="badge" style="display:none">⭐ Shield</div>
+    <div id="lowOverlay" class="overlay"><div class="box"><h2>Low's Adventure+</h2><p>Jump over hazards, collect coins, grab shield stars, and survive as the world speeds up.</p><button id="lowStart" class="mainbtn">Start</button></div></div>
+  </div>
+  <div class="low-controls"><button id="jumpBtn" class="jump">↑ Jump</button></div>
+</div>
+
+<script>
+(function(){
+  var timers=[];
+  var current='';
+  function addTimer(id){timers.push(id);return id}
+  function clearTimers(){while(timers.length){var id=timers.pop();clearInterval(id);clearTimeout(id)}}
+  function show(id){
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    document.getElementById(id).classList.add('active');
+    current=id;
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll('[data-open]').forEach(function(b){
+    b.addEventListener('click',function(){show(b.getAttribute('data-open'))});
+  });
+  document.querySelectorAll('[data-back]').forEach(function(b){
+    b.addEventListener('click',function(){stopAll();show('home')});
+  });
+  function stopAll(){clearTimers();sliceRunning=false;fruitRunning=false;lowRunning=false}
+
+  /* Slice Master - slower */
+  var sliceRunning=false,sliceScore=0,sliceBlock=null,sliceX=0;
+  var sliceGame=document.getElementById('sliceGame'),knife=document.getElementById('knife');
+  function startSlice(){
+    clearTimers();removeSlice();
+    sliceRunning=true;sliceScore=0;
+    document.getElementById('sliceScore').textContent='0';
+    document.getElementById('sliceOverlay').style.display='none';
+    spawnSlice();
+  }
+  function removeSlice(){if(sliceBlock&&sliceBlock.parentNode)sliceBlock.remove();sliceBlock=null}
+  function spawnSlice(){
+    if(!sliceRunning)return;
+    sliceBlock=document.createElement('div');sliceBlock.className='block';sliceGame.appendChild(sliceBlock);
+    sliceX=sliceGame.clientWidth-90;
+    sliceBlock.style.left=sliceX+'px';
+    sliceBlock.style.height=(82+Math.random()*65)+'px';
+    addTimer(setInterval(function(){
+      if(!sliceRunning||!sliceBlock)return;
+      sliceX-=3.1; /* intentionally slower */
+      sliceBlock.style.left=sliceX+'px';
+      if(sliceX<-85){removeSlice();addTimer(setTimeout(spawnSlice,420))}
+    },30));
+  }
+  function swing(){
+    if(!sliceRunning)return;
+    knife.style.transform='rotate(-82deg)';
+    addTimer(setTimeout(function(){knife.style.transform='rotate(-18deg)'},150));
+    if(sliceBlock&&sliceX<215&&sliceX>20){
+      sliceScore++;document.getElementById('sliceScore').textContent=sliceScore;
+      var old=sliceBlock;sliceBlock=null;
+      old.style.transition='.22s';old.style.transform='rotate(35deg) translateY(40px)';old.style.opacity='.25';
+      addTimer(setTimeout(function(){if(old.parentNode)old.remove();spawnSlice()},220));
+    }
+  }
+  document.getElementById('sliceStart').addEventListener('click',function(e){e.stopPropagation();startSlice()});
+  sliceGame.addEventListener('pointerdown',function(e){if(e.target.closest('.overlay'))return;e.preventDefault();swing()},{passive:false});
+
+  /* Fruit Slice - swipe mechanic */
+  var fruitGame=document.getElementById('fruitGame');
+  var fruitRunning=false,fruitScore=0,fruitItems=[],dragging=false,lastPoint=null;
+  var fruitTypes=[
+    {emoji:'🍓',name:'Strawberry',score:5,juice:'#ff4b78'},
+    {emoji:'🍎',name:'Apple',score:10,juice:'#ff4b56'},
+    {emoji:'🍊',name:'Orange',score:20,juice:'#ffad2f'},
+    {emoji:'🍍',name:'Pineapple',score:30,juice:'#f0d047'},
+    {emoji:'🍉',name:'Watermelon',score:40,juice:'#72d66a'}
+  ];
+  function startFruit(){
+    clearTimers();clearFruit();
+    fruitRunning=true;fruitScore=0;dragging=false;lastPoint=null;
+    document.getElementById('fruitScore').textContent='0';
+    document.getElementById('fruitOverlay').style.display='none';
+    startFruitMovement();
+    fruitSpawnLoop();
+  }
+  function clearFruit(){
+    fruitItems.forEach(function(f){if(f.el.parentNode)f.el.remove()});fruitItems=[];
+    fruitGame.querySelectorAll('.slash,.half').forEach(function(el){el.remove()});
+  }
+  function fruitSpawnLoop(){
+    if(!fruitRunning)return;
+    spawnFruit();
+    if(Math.random()<.28)addTimer(setTimeout(spawnFruit,130));
+    addTimer(setTimeout(fruitSpawnLoop,700));
+  }
+
+  function startFruitMovement(){
+    addTimer(setInterval(function(){
+      if(!fruitRunning)return;
+      var gravity=26;
+
+      fruitItems=fruitItems.filter(function(f){
+        if(f.hit)return false;
+
+        f.vy+=gravity;
+        f.x+=f.vx*.03;
+        f.y+=f.vy*.03;
+
+        if(f.x<8){
+          f.x=8;
+          f.vx=Math.abs(f.vx);
+        }
+        if(f.x>fruitGame.clientWidth-82){
+          f.x=fruitGame.clientWidth-82;
+          f.vx=-Math.abs(f.vx);
+        }
+
+        f.el.style.left=f.x+'px';
+        f.el.style.top=f.y+'px';
+        f.el.style.transform='rotate('+((f.x+f.y)*.06+f.spin*8)+'deg)';
+
+        if(f.y>fruitGame.clientHeight+95){
+          if(f.el.parentNode)f.el.remove();
+          return false;
+        }
+        return true;
+      });
+    },30));
+  }
+  function spawnFruit(){
+    if(!fruitRunning)return;
+    var bomb=Math.random()<.16;
+    var el=document.createElement('div');
+    var type=null;
+    if(bomb){
+      el.className='bomb';
+    }else{
+      el.className='fruit';
+      type=fruitTypes[Math.floor(Math.random()*fruitTypes.length)];
+      el.textContent=type.emoji;
+      el.setAttribute('aria-label',type.name);
+    }
+    fruitGame.appendChild(el);
+    var margin=35;
+    var startX=margin+Math.random()*Math.max(20,fruitGame.clientWidth-(margin*2)-74);
+    var startY=fruitGame.clientHeight+25;
+    var horizontalPush=(Math.random()-.5)*(140+Math.random()*90);
+    var upwardSpeed=-(620+Math.random()*170);
+    var f={
+      el:el,
+      bomb:bomb,
+      type:type,
+      x:startX,
+      y:startY,
+      vx:horizontalPush,
+      vy:upwardSpeed,
+      spin:(Math.random()-.5)*10,
+      hit:false
+    };
+    el.style.left=f.x+'px';
+    el.style.top=f.y+'px';
+    fruitItems.push(f);
+  }
+
+  function sliceAt(clientX,clientY){
+    if(!fruitRunning)return;
+    var ar=fruitGame.getBoundingClientRect();
+    fruitItems.forEach(function(f){
+      if(f.hit)return;
+      var r=f.el.getBoundingClientRect();
+      if(clientX>=r.left&&clientX<=r.right&&clientY>=r.top&&clientY<=r.bottom){
+        f.hit=true;
+        if(f.bomb){
+          fruitRunning=false;clearTimers();
+          var ov=document.getElementById('fruitOverlay');ov.style.display='flex';
+          ov.querySelector('h2').textContent='Boom!';
+          ov.querySelector('p').textContent='Score: '+fruitScore+'. Swipe carefully!';
+          return;
+        }
+        fruitScore+=f.type.score;
+        document.getElementById('fruitScore').textContent=fruitScore;
+        createFruitSliceEffect(f,r,ar);
+        showPointPop(f.type.score,r,ar);
+        if(f.el.parentNode)f.el.remove();
+      }
+    });
+    fruitItems=fruitItems.filter(function(f){return !f.hit});
+  }
+  function createFruitSliceEffect(f,r,ar){
+    var cx=r.left-ar.left+r.width/2, cy=r.top-ar.top+r.height/2;
+
+    var left=document.createElement('div'),right=document.createElement('div');
+    left.className='fruit-piece';right.className='fruit-piece';
+    left.textContent=f.type.emoji;right.textContent=f.type.emoji;
+    left.style.left=(cx-34)+'px';left.style.top=(cy-34)+'px';
+    right.style.left=(cx-34)+'px';right.style.top=(cy-34)+'px';
+    left.style.clipPath='inset(0 50% 0 0)';
+    right.style.clipPath='inset(0 0 0 50%)';
+    fruitGame.appendChild(left);fruitGame.appendChild(right);
+
+    left.style.transition=right.style.transition='transform .45s ease-out, opacity .45s ease-out';
+    requestAnimationFrame(function(){
+      left.style.transform='translate(-42px,50px) rotate(-50deg)';
+      right.style.transform='translate(42px,50px) rotate(50deg)';
+      left.style.opacity='0';right.style.opacity='0';
+    });
+
+    for(var i=0;i<9;i++){
+      var d=document.createElement('div');
+      d.className='juice-dot';
+      d.style.background=f.type.juice;
+      d.style.left=(cx-5)+'px';d.style.top=(cy-5)+'px';
+      d.style.setProperty('--jx',((-45+Math.random()*90))+'px');
+      d.style.setProperty('--jy',((-55+Math.random()*95))+'px');
+      fruitGame.appendChild(d);
+      addTimer(setTimeout(function(dot){return function(){dot.remove()}}(d),470));
+    }
+
+    addTimer(setTimeout(function(){left.remove();right.remove()},470));
+  }
+
+  function showPointPop(points,r,ar){
+    var p=document.createElement('div');
+    p.className='point-pop';
+    p.textContent='+'+points;
+    p.style.left=(r.left-ar.left+r.width/2-18)+'px';
+    p.style.top=(r.top-ar.top-4)+'px';
+    fruitGame.appendChild(p);
+    addTimer(setTimeout(function(){p.remove()},720));
+  }
+
+  function slashLine(a,b){
+    if(!a||!b)return;
+    var ar=fruitGame.getBoundingClientRect(),dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+    if(len<3)return;
+    var s=document.createElement('div');s.className='slash';
+    s.style.left=(a.x-ar.left)+'px';s.style.top=(a.y-ar.top)+'px';s.style.width=len+'px';s.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
+    fruitGame.appendChild(s);addTimer(setTimeout(function(){s.remove()},95));
+  }
+  fruitGame.addEventListener('pointerdown',function(e){
+    if(e.target.closest('.overlay')||!fruitRunning)return;
+    e.preventDefault();dragging=true;lastPoint={x:e.clientX,y:e.clientY};
+    fruitGame.setPointerCapture&&fruitGame.setPointerCapture(e.pointerId);
+    sliceAt(e.clientX,e.clientY);
+  },{passive:false});
+  fruitGame.addEventListener('pointermove',function(e){
+    if(!dragging||!fruitRunning)return;
+    e.preventDefault();
+    var p={x:e.clientX,y:e.clientY};slashLine(lastPoint,p);
+    for(var i=1;i<=5;i++){
+      var x=lastPoint.x+(p.x-lastPoint.x)*i/5,y=lastPoint.y+(p.y-lastPoint.y)*i/5;
+      sliceAt(x,y);
+    }
+    lastPoint=p;
+  },{passive:false});
+  function endDrag(){dragging=false;lastPoint=null}
+  fruitGame.addEventListener('pointerup',endDrag);
+  fruitGame.addEventListener('pointercancel',endDrag);
+  document.getElementById('fruitStart').addEventListener('click',function(e){e.stopPropagation();startFruit()});
+
+  /* Low's Adventure+ */
+  var lowGame=document.getElementById('lowGame'),player=document.getElementById('lowPlayer');
+  var lowRunning=false,lowScore=0,lowCoins=0,lowObjects=[],playerY=92,vy=0,onGround=true,shield=false,lastLow=0,spawnMs=800;
+  function startLow(){
+    clearTimers();clearLow();
+    lowRunning=true;lowScore=0;lowCoins=0;playerY=92;vy=0;onGround=true;shield=false;spawnMs=700;
+    player.style.bottom='92px';
+    document.getElementById('lowScore').textContent='0';
+    document.getElementById('lowCoins').textContent='0';
+    document.getElementById('powerBadge').style.display='none';
+    document.getElementById('lowOverlay').style.display='none';
+    lastLow=performance.now();
+    addTimer(setInterval(lowTick,30));
+    scheduleLowSpawn();
+  }
+  function clearLow(){lowObjects.forEach(function(o){if(o.el.parentNode)o.el.remove()});lowObjects=[]}
+  function scheduleLowSpawn(){
+    if(!lowRunning)return;
+    spawnLowThing();
+    addTimer(setTimeout(scheduleLowSpawn,Math.max(420,spawnMs)));
+    spawnMs=Math.max(430,spawnMs-5);
+  }
+  function spawnLowThing(){
+    var roll=Math.random();
+    if(roll<.22)makeLow('coin');
+    else if(roll<.31)makeLow('power');
+    else if(roll<.56)makeLow('crate');
+    else if(roll<.78)makeLow('spike');
+    else makeLow('enemy');
+    if(Math.random()<.22)addTimer(setTimeout(function(){if(lowRunning)makeLow('coin')},220));
+  }
+  function makeLow(type){
+    var el=document.createElement('div');el.className=type;lowGame.appendChild(el);
+    var y=92;
+    if(type==='coin')y=150+Math.random()*110;
+    if(type==='power')y=170;
+    lowObjects.push({el:el,type:type,x:lowGame.clientWidth+30,y:y,speed:4.6+Math.min(lowScore/300,3.1)});
+  }
+  function jumpLow(){
+    if(!lowRunning||!onGround)return;
+    vy=17.5;onGround=false;
+  }
+  function lowTick(){
+    if(!lowRunning)return;
+    lowScore++;
+    document.getElementById('lowScore').textContent=Math.floor(lowScore/10);
+    vy-=1.1;playerY+=vy;
+    if(playerY<=92){playerY=92;vy=0;onGround=true}
+    player.style.bottom=playerY+'px';
+
+    lowObjects=lowObjects.filter(function(o){
+      o.x-=o.speed;
+      o.el.style.left=o.x+'px';o.el.style.bottom=o.y+'px';
+      var ow=(o.type==='coin'?28:o.type==='power'?34:o.type==='crate'?52:48);
+      var oh=(o.type==='coin'?36:o.type==='power'?34:o.type==='crate'?52:o.type==='spike'?42:48);
+      var overlap=(128>o.x&&80<o.x+ow&&(playerY+60)>o.y&&playerY<o.y+oh);
+      if(overlap){
+        if(o.type==='coin'){
+          lowCoins++;document.getElementById('lowCoins').textContent=lowCoins;o.el.remove();return false;
+        }
+        if(o.type==='power'){
+          shield=true;document.getElementById('powerBadge').style.display='block';o.el.remove();
+          addTimer(setTimeout(function(){shield=false;document.getElementById('powerBadge').style.display='none'},5000));
+          return false;
+        }
+        if(shield){
+          shield=false;document.getElementById('powerBadge').style.display='none';o.el.remove();return false;
+        }
+        endLow();return false;
+      }
+      if(o.x<-80){o.el.remove();return false}
+      return true;
+    });
+  }
+  function endLow(){
+    lowRunning=false;clearTimers();
+    var ov=document.getElementById('lowOverlay');ov.style.display='flex';
+    ov.querySelector('h2').textContent='Adventure Over!';
+    ov.querySelector('p').textContent='Score: '+Math.floor(lowScore/10)+' · Coins: '+lowCoins+'. Try to beat it!';
+  }
+  document.getElementById('lowStart').addEventListener('click',function(e){e.stopPropagation();startLow()});
+  document.getElementById('jumpBtn').addEventListener('pointerdown',function(e){e.preventDefault();jumpLow()},{passive:false});
+  lowGame.addEventListener('pointerdown',function(e){if(e.target.closest('.overlay'))return;e.preventDefault();jumpLow()},{passive:false});
+  document.addEventListener('keydown',function(e){if(current==='low'&&(e.code==='Space'||e.code==='ArrowUp')){e.preventDefault();jumpLow()}});
+
+})();
+</script>
+</body>
+</html>
